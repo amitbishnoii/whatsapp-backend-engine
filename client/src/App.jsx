@@ -6,10 +6,21 @@ const App = () => {
 
   const socketRef = useRef(null);
   const [message, setMessage] = useState("");
+  const [recID, setRecID] = useState("");
+  const [userID, setUserID] = useState("");
+  const [showChatUI, setShowChatUI] = useState(false);
 
   const handleSend = () => {
-    socketRef.current.emit("send-message", message);
+    socketRef.current.emit("send-message", { message, recID, userID });
+    setMessage("");
+    setUserID("");
+    setRecID("");
     console.log('message sent!!');
+  }
+
+  const handleStart = () => {
+    socketRef.current.emit("connect-user", userID);
+    setShowChatUI(true);
   }
 
   useEffect(() => {
@@ -33,8 +44,19 @@ const App = () => {
   return (
     <div>
       <div className="container">
-        <input type="text" value={message} onChange={(e) => { setMessage(e.target.value) }} placeholder='message' className='text-input' />
-        <button className="button" onClick={handleSend}>Send</button>
+        {showChatUI ? (
+          <div className="message-box">
+            <input type="text" value={message} onChange={(e) => { setMessage(e.target.value) }} placeholder='message' className='text-input' />
+            <input type="text" value={recID} onChange={(e) => { setRecID(e.target.value) }} placeholder='To...' className='text-input' />
+            <button className="button" onClick={handleSend}>Send</button>
+          </div>
+        ) : (
+          <div className="id-box">
+            <input type="text" value={userID} onChange={(e) => { setUserID(e.target.value) }} placeholder='Your User ID...' className='text-input' />
+            <button className="button" onClick={handleStart}>Start</button>
+          </div>
+        )}
+
       </div>
     </div>
   )
