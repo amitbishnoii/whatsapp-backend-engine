@@ -5,7 +5,6 @@ import { createServer } from 'http'
 const app = express();
 const server = createServer(app);
 const socketUserMap = new Map();
-const socketIDs = new Set();
 const io = new Server(server, {
     cors: {
         origin: "http://localhost:5173",
@@ -15,9 +14,18 @@ const io = new Server(server, {
 
 io.on("connection", (socket) => {
     console.log('user connected: ', socket.id);
+
     socket.on("send-message", (data) => {
         console.log('message: ', data);
-        socket.to(data.recID).emit("recieve-message", data.message);
+        const socketSet = socketUserMap.get(data.recID);
+        if (!socketSet) {
+            console.log('user not found!!');
+            return;
+        }
+        for (const socketId of socketSet) {
+            console.log('id: ', socketId);
+            io.to(socketId).emit("receive-message", data.message);
+        }
     });
 
     socket.on("connect-user", (userID) => {
