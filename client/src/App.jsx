@@ -25,6 +25,18 @@ const App = () => {
     setShowChatUI(true);
   }
 
+  const handleMessageChange = (e) => {
+    let typingTimeout;
+    socketRef.current.emit("typing", { userID });
+    setMessage(e.target.value);
+    
+    clearTimeout(typingTimeout);
+    
+    typingTimeout = setInterval(() => {
+      socketRef.current.emit("typing-stopped", { userID });
+    }, 1000);
+  }
+
   useEffect(() => {
 
     socketRef.current = io("http://localhost:3000");
@@ -48,7 +60,7 @@ const App = () => {
       <div className="container">
         {showChatUI ? (
           <div className="message-box">
-            <input type="text" value={message} onChange={(e) => { setMessage(e.target.value) }} placeholder='message' className='text-input' />
+            <input type="text" value={message} onChange={handleMessageChange} placeholder='message' className='text-input' />
             <input type="text" value={recID} onChange={(e) => { setRecID(e.target.value) }} placeholder='To...' className='text-input' />
             <button className="button" onClick={handleSend}>Send</button>
           </div>
