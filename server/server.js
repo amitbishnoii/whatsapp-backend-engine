@@ -4,7 +4,8 @@ import { createServer } from 'http'
 
 const app = express();
 const server = createServer(app);
-const socketUser = new Map();
+const socketUserMap = new Map();
+const socketIDs = new Set();
 const io = new Server(server, {
     cors: {
         origin: "http://localhost:5173",
@@ -20,10 +21,24 @@ io.on("connection", (socket) => {
     });
 
     socket.on("connect-user", (userID) => {
-        socketUser.set(userID, socket.id);
+        if (!socketUserMap.has(userID)) {
+            socketUserMap.set(userID, new Set());
+        }
+        const socketIdSet = socketUserMap.get(userID);
+        socketIdSet.add(socket.id);
+        console.log('current user map: ', socketUserMap);
     });
 
     socket.on("disconnect", () => {
+        for (const [uID, socketSet] of socketUserMap) {
+            if (socketSet.has(socket.id)) {
+                socketSet.delete(socket.id);
+                if (socketSet === 0) {
+                    socketUserMap.delete(uID);
+                }
+                break;
+            }
+        }
         console.log('socket disconnected: ', socket.id);
     });
 });
