@@ -5,6 +5,7 @@ import "./App.css"
 const App = () => {
 
   const socketRef = useRef(null);
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [recID, setRecID] = useState("");
   const [userID, setUserID] = useState("");
@@ -12,6 +13,7 @@ const App = () => {
 
   const handleSend = () => {
     socketRef.current.emit("send-message", { message, recID, userID });
+    setMessages((prev) => [...prev, message]);
     setMessage("");
     setUserID("");
     setRecID("");
@@ -31,10 +33,10 @@ const App = () => {
       console.log('user connected: ', socketRef.current.id);
     });
 
-    socketRef.current.on("recieve-message", (msg) => {
+    socketRef.current.on("receive-message", (msg) => {
+      setMessages((prev) => [...prev, msg]);
       console.log('got a message bro: ', msg);
     });
-
 
     return () => {
       socketRef.current.disconnect();
@@ -57,6 +59,11 @@ const App = () => {
           </div>
         )}
 
+      </div>
+      <div className="message-container">
+        {messages ? messages.map((text, index) => {
+          return <div key={index}>{text}</div>
+        }) : ""}
       </div>
     </div>
   )
