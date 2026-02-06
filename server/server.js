@@ -37,6 +37,15 @@ io.on("connection", (socket) => {
         console.log('current user map: ', socketUserMap);
     });
 
+    socket.on("typing:start", (user) => {
+        console.log(user.userID, ' is typing!');
+        socket.broadcast.emit("typing-start", user.userID);
+    });
+
+    socket.on("typing:stop", (userID) => {
+        console.log('typing stopped', userID);
+    })
+
     socket.on("disconnect", () => {
         for (const [uID, socketSet] of socketUserMap) {
             if (socketSet.has(socket.id)) {

@@ -5,10 +5,13 @@ import "./App.css"
 const App = () => {
 
   const socketRef = useRef(null);
+  const typingTimerRef = useRef(null);
+  const isTypingRef = useRef(false);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [recID, setRecID] = useState("");
   const [userID, setUserID] = useState("");
+  const [typing, setTyping] = useState("");
   const [showChatUI, setShowChatUI] = useState(false);
 
   const handleSend = () => {
@@ -20,21 +23,25 @@ const App = () => {
     console.log('message sent!!');
   }
 
+  function handleMessageChange(e) {
+    setMessage(e.target.value);
+
+    if (!isTypingRef.current) {
+      socketRef.current.emit("typing:start", {userID, recID});
+      isTypingRef.current = true;
+    }
+
+    clearTimeout(typingTimerRef.current);
+
+    typingTimerRef.current = setTimeout(() => {
+      socketRef.current.emit("typing:stop", userID);
+      isTypingRef.current = false;
+    }, 1000);
+  }
+
   const handleStart = () => {
     socketRef.current.emit("connect-user", userID);
     setShowChatUI(true);
-  }
-
-  const handleMessageChange = (e) => {
-    let typingTimeout;
-    socketRef.current.emit("typing", { userID });
-    setMessage(e.target.value);
-    
-    clearTimeout(typingTimeout);
-    
-    typingTimeout = setInterval(() => {
-      socketRef.current.emit("typing-stopped", { userID });
-    }, 1000);
   }
 
   useEffect(() => {
@@ -47,7 +54,12 @@ const App = () => {
 
     socketRef.current.on("receive-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
-      console.log('got a message bro: ', msg);
+      console.log('got a message: ', msg);
+    });
+
+    socketRef.current.on("typing-start", (username) => {
+      setTyping(username);
+      console.log(username, ' is typing!');
     });
 
     return () => {
@@ -59,10 +71,15 @@ const App = () => {
     <div>
       <div className="container">
         {showChatUI ? (
-          <div className="message-box">
-            <input type="text" value={message} onChange={handleMessageChange} placeholder='message' className='text-input' />
-            <input type="text" value={recID} onChange={(e) => { setRecID(e.target.value) }} placeholder='To...' className='text-input' />
-            <button className="button" onClick={handleSend}>Send</button>
+          <div className="cont">
+            <div className="message-box">
+              <input type="text" value={message} onChange={handleMessageChange} placeholder='message' className='text-input' />
+              <input type="text" value={recID} onChange={(e) => { setRecID(e.target.value) }} placeholder='To...' className='text-input' />
+              <button className="button" onClick={handleSend}>Send</button>
+            </div>
+            <div className="typing-status">
+              <p>{typing} is typing...</p>
+            </div>
           </div>
         ) : (
           <div className="id-box">
