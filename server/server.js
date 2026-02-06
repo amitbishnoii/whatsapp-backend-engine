@@ -38,7 +38,14 @@ io.on("connection", (socket) => {
 
     socket.on("typing:start", (user) => {
         console.log(user.userID, ' is typing!');
-        socket.broadcast.emit("typing-start", user.userID);
+        if (!user.recID) {
+            return;
+        }
+        const socketSet = socketUserMap.get(user.recID);
+
+        for (const socketID of socketSet) {
+            io.to(socketID).emit("typing-start", user.userID);
+        }
     });
 
     socket.on("typing:stop", (userID) => {
