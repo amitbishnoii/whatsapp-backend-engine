@@ -12,6 +12,7 @@ const App = () => {
   const [recID, setRecID] = useState("");
   const [userID, setUserID] = useState("");
   const [typing, setTyping] = useState("");
+  const [notTyping, setNotTyping] = useState("");
   const [showChatUI, setShowChatUI] = useState(false);
 
   const handleSend = () => {
@@ -59,7 +60,14 @@ const App = () => {
 
     socketRef.current.on("typing-start", (username) => {
       setTyping(username);
+      setNotTyping(null);
       console.log(username, ' is typing!');
+    });
+
+    socketRef.current.on("typing-stop", (username) => {
+      setNotTyping(username);
+      setTyping(null);
+      console.log(username, ' stopped typing!');
     });
 
     return () => {
@@ -78,7 +86,7 @@ const App = () => {
               <button className="button" onClick={handleSend}>Send</button>
             </div>
             <div className="typing-status">
-              <p>{typing} is typing...</p>
+              {typing ? <p>{typing} is typing...</p> : <p></p>}
             </div>
           </div>
         ) : (

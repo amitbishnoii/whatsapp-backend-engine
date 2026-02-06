@@ -23,7 +23,6 @@ io.on("connection", (socket) => {
             return;
         }
         for (const socketId of socketSet) {
-            console.log('id: ', socketId);
             io.to(socketId).emit("receive-message", data.message);
         }
     });
@@ -44,6 +43,7 @@ io.on("connection", (socket) => {
 
     socket.on("typing:stop", (userID) => {
         console.log('typing stopped', userID);
+        socket.broadcast.emit("typing-stop", userID);
     })
 
     socket.on("disconnect", () => {
