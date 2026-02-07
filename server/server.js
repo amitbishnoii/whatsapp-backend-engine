@@ -1,84 +1,29 @@
 import express from "express";
 import { Server } from "socket.io";
-import { createServer } from 'http';
+import { createServer } from "http";
 import { configDotenv } from "dotenv";
 import connection from "./config/db.js";
+import initSocket from "./sockets/index.js";
+
 configDotenv();
 await connection();
+
 const app = express();
 const server = createServer(app);
-const socketUserMap = new Map();
+
 const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST"]
-    }
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
 });
 
-io.on("connection", (socket) => {
-    console.log('user connected: ', socket.id);
-
-    socket.on("send-message", (data) => {
-        console.log('message: ', data);
-        const socketSet = socketUserMap.get(data.recID);
-        if (!socketSet) {
-            console.log('user not found!!');
-            return;
-        }
-        for (const socketId of socketSet) {
-            io.to(socketId).emit("receive-message", data.message);
-        }
-    });
-
-    socket.on("connect-user", (userID) => {
-        if (!socketUserMap.has(userID)) {
-            socketUserMap.set(userID, new Set());
-            socket.broadcast.emit("user-online", { 
-                id: socket.id, 
-                uid: userID 
-            });
-        }
-        const socketIdSet = socketUserMap.get(userID);
-        socketIdSet.add(socket.id);
-        console.log('current user map: ', socketUserMap);
-    });
-
-    socket.on("typing:start", (user) => {
-        console.log(user.userID, ' is typing!');
-        if (!user.recID) {
-            return;
-        }
-        const socketSet = socketUserMap.get(user.recID);
-
-        for (const socketID of socketSet) {
-            io.to(socketID).emit("typing-start", user.userID);
-        }
-    });
-
-    socket.on("typing:stop", (userID) => {
-        console.log('typing stopped', userID);
-        socket.broadcast.emit("typing-stop", userID);
-    })
-
-    socket.on("disconnect", () => {
-        for (const [uID, socketSet] of socketUserMap) {
-            if (socketSet.has(socket.id)) {
-                socketSet.delete(socket.id);
-                if (socketSet === 0) {
-                    socket.broadcast.emit("user-offline", uID);
-                    socketUserMap.delete(uID);
-                }
-                break;
-            }
-        }
-        console.log('socket disconnected: ', socket.id);
-    });
-});
+initSocket(io);
 
 app.get("/", (req, res) => {
-    res.send("hello world!");
+  res.send("hello world!");
 });
 
 server.listen(3000, () => {
-    console.log('server listening on port 3000!');
+  console.log("server listening on port 3000!");
 });
