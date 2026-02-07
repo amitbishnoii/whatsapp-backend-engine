@@ -3,6 +3,7 @@ import { getUserSockets } from "./presence.js";
 export function handleMessaging(io, socket) {
     socket.on("send-message", (data) => {
         const socketSet = getUserSockets(data.recID);
+        console.log('we got send message fired: ', data.recID);
         if (!socketSet) return;
 
         for (const socketId of socketSet) {
@@ -17,11 +18,11 @@ export function handleMessaging(io, socket) {
         if (!socketSet) return;
 
         for (const socketId of socketSet) {
-            io.to(socketId).emit("typing-start", user.userID);
+            io.to(socketId).emit("typing-start", socket.userId);
         }
     });
 
-    socket.on("typing:stop", (userID) => {
-        socket.broadcast.emit("typing-stop", userID);
+    socket.on("typing:stop", () => {
+        socket.broadcast.emit("typing-stop", socket.userId);
     });
 }

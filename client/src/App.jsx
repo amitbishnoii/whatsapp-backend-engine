@@ -14,9 +14,10 @@ const App = () => {
   const [typing, setTyping] = useState("");
   const [notTyping, setNotTyping] = useState("");
   const [showChatUI, setShowChatUI] = useState(false);
+  const [socketReady, setSocketReady] = useState(false);
 
   const handleSend = () => {
-    socketRef.current.emit("send-message", { message, recID, userID });
+    socketRef.current.emit("send-message", { message, recID });
     setMessages((prev) => [...prev, message]);
     setMessage("");
     setUserID("");
@@ -38,50 +39,58 @@ const App = () => {
       socketRef.current.emit("typing:stop", userID);
       isTypingRef.current = false;
     }, 1000);
-  }
+  };
 
-  const handleStart = () => {
-    socketRef.current.emit("connect-user", userID);
+  const handleLogin = () => {
+    if (!userID) return;
+    if (socketRef.current) return;
+
+    socketRef.current = io("http://localhost:3000", {
+      auth: { userId: userID },
+    });
+    
+    setSocketReady(true);
     setShowChatUI(true);
   }
 
   useEffect(() => {
 
-    socketRef.current = io("http://localhost:3000");
+    if (!socketReady) return;
+    let socket = socketRef.current;
 
-    socketRef.current.on("connect", () => {
+    socket.on("connect", () => {
       console.log('user connected: ', socketRef.current.id);
     });
 
-    socketRef.current.on("user-online", (socketID) => {
+    socket.on("user-online", (socketID) => {
       console.log(socketID.id, ": ", socketID.uid, ' user is online.');
     });
 
-    socketRef.current.on("user-offline", (user) => {
+    socket.on("user-offline", (user) => {
       console.log(user, ' user is offline.');
     });
 
-    socketRef.current.on("receive-message", (msg) => {
+    socket.on("receive-message", (msg) => {
       setMessages((prev) => [...prev, msg]);
       console.log('got a message: ', msg);
     });
 
-    socketRef.current.on("typing-start", (username) => {
+    socket.on("typing-start", (username) => {
       setTyping(username);
       setNotTyping(null);
       console.log(username, ' is typing!');
     });
 
-    socketRef.current.on("typing-stop", (username) => {
+    socket.on("typing-stop", (username) => {
       setNotTyping(username);
       setTyping(null);
       console.log(username, ' stopped typing!');
     });
 
     return () => {
-      socketRef.current.disconnect();
+      socket.disconnect();
     };
-  }, []);
+  }, [socketReady]);
 
   return (
     <div>
@@ -100,7 +109,7 @@ const App = () => {
         ) : (
           <div className="id-box">
             <input type="text" value={userID} onChange={(e) => { setUserID(e.target.value) }} placeholder='Your User ID...' className='text-input' />
-            <button className="button" onClick={handleStart}>Start</button>
+            <button className="button" onClick={handleLogin}>Login</button>
           </div>
         )}
 

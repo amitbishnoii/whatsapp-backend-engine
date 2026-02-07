@@ -6,6 +6,7 @@ export function addUser(userID, socketId) {
         return true;
     }
     socketUserMap.get(userID).add(socketId);
+    console.log('socket map is like this: ', socketUserMap);
     return false;
 }
 
