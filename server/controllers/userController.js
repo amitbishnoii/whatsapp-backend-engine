@@ -47,3 +47,32 @@ export const createUser = async (req, res) => {
         });
     }
 }
+
+export const addFriend = async (req, res) => {
+    try {
+        const { friendUsername, username } = req.body;
+        const friend = await User.findOne({ name: friendUsername });
+        if (!friend) {
+            res.status(404).json({
+                success: false,
+                message: "Friend not found!!",
+            });
+        } else {
+            const user = await User.findOneAndUpdate(
+                { name: username },
+                { $push: { friends: friend._id } },
+                { new: true }
+            );
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+
+            res.json({ success: true, user });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    }
+}
