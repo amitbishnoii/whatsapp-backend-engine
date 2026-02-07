@@ -28,7 +28,7 @@ const App = () => {
     setMessage(e.target.value);
 
     if (!isTypingRef.current) {
-      socketRef.current.emit("typing:start", {userID, recID});
+      socketRef.current.emit("typing:start", { userID, recID });
       isTypingRef.current = true;
     }
 
@@ -51,6 +51,14 @@ const App = () => {
 
     socketRef.current.on("connect", () => {
       console.log('user connected: ', socketRef.current.id);
+    });
+
+    socketRef.current.on("user-online", (socketID) => {
+      console.log(socketID.id, ": ", socketID.uid, ' user is online.');
+    });
+
+    socketRef.current.on("user-offline", (user) => {
+      console.log(user, ' user is offline.');
     });
 
     socketRef.current.on("receive-message", (msg) => {

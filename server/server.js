@@ -30,6 +30,10 @@ io.on("connection", (socket) => {
     socket.on("connect-user", (userID) => {
         if (!socketUserMap.has(userID)) {
             socketUserMap.set(userID, new Set());
+            socket.broadcast.emit("user-online", { 
+                id: socket.id, 
+                uid: userID 
+            });
         }
         const socketIdSet = socketUserMap.get(userID);
         socketIdSet.add(socket.id);
@@ -58,6 +62,7 @@ io.on("connection", (socket) => {
             if (socketSet.has(socket.id)) {
                 socketSet.delete(socket.id);
                 if (socketSet === 0) {
+                    socket.broadcast.emit("user-offline", uID);
                     socketUserMap.delete(uID);
                 }
                 break;
