@@ -12,11 +12,11 @@ export default function initSocket(io) {
 
         socket.userId = userId;
 
-        socket.on("connect-user", async (userID) => {
+        socket.on("connect-user", async () => {
             try {
                 const firstOnline = addUser(userId, socket.id);
 
-                const user = await User.findOne({ username: userId });
+                const user = await User.findOne({ name: socket.userId });
                 if (!user) return;
 
                 const friendUsernames = user.friends || [];
