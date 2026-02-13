@@ -12,7 +12,7 @@ const App = () => {
   const [recID, setRecID] = useState("");
   const [userID, setUserID] = useState("");
   const [typing, setTyping] = useState("");
-  const [notTyping, setNotTyping] = useState("");
+  const [, setNotTyping] = useState("");
   const [showChatUI, setShowChatUI] = useState(false);
   const [socketReady, setSocketReady] = useState(false);
 
@@ -64,7 +64,7 @@ const App = () => {
     });
 
     socket.on("user-online", (socketID) => {
-      console.log(socketID.uid, ' user is online.');
+      console.log(socketID.uid, 'is online.');
     });
 
     socket.on("user-offline", (user) => {
