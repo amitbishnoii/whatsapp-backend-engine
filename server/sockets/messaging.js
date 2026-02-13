@@ -4,7 +4,10 @@ export function handleMessaging(io, socket) {
     socket.on("send-message", (data) => {
         const socketSet = getUserSockets(data.recID);
         console.log('we got send message fired: ', data.recID);
-        if (!socketSet) return;
+        if (!socketSet) {
+            console.log('socket set is empty');
+            return;
+        }
 
         for (const socketId of socketSet) {
             io.to(socketId).emit("receive-message", data.message);

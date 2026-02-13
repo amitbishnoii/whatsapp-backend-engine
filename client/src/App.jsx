@@ -20,7 +20,6 @@ const App = () => {
     socketRef.current.emit("send-message", { message, recID });
     setMessages((prev) => [...prev, message]);
     setMessage("");
-    setUserID("");
     setRecID("");
     console.log('message sent!!');
   }
@@ -48,6 +47,8 @@ const App = () => {
     socketRef.current = io("http://localhost:3000", {
       auth: { userId: userID },
     });
+
+    socketRef.current.emit("connect-user", userID);
     
     setSocketReady(true);
     setShowChatUI(true);
@@ -63,7 +64,7 @@ const App = () => {
     });
 
     socket.on("user-online", (socketID) => {
-      console.log(socketID.id, ": ", socketID.uid, ' user is online.');
+      console.log(socketID.uid, ' user is online.');
     });
 
     socket.on("user-offline", (user) => {

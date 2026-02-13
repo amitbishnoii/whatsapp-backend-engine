@@ -2,7 +2,7 @@ const socketUserMap = new Map();
 
 export function addUser(userID, socketId) {
     if (!socketUserMap.has(userID)) {
-        socketUserMap.set(userID, new Set());
+        socketUserMap.set(userID, new Set([socketId]));
         return true;
     }
     socketUserMap.get(userID).add(socketId);

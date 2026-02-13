@@ -60,7 +60,7 @@ export const addFriend = async (req, res) => {
         } else {
             const user = await User.findOneAndUpdate(
                 { name: username },
-                { $push: { friends: friend._id } },
+                { $push: { friends: friend.name } },
                 { new: true }
             );
             if (!user) {
